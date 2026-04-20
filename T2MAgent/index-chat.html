@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MCP Recommendation Assistant - Chat UI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      color-scheme: light;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, #e5f0ff, #f7f7f9);
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 960px;
+      height: 90vh;
+      max-height: 720px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+      padding: 18px 20px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .app-header {
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+    }
+
+    .app-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin: 0 0 4px;
+      color: #111827;
+    }
+
+    .app-subtitle {
+      margin: 0;
+      font-size: 0.85rem;
+      color: #6b7280;
+    }
+
+    .chat-container {
+      flex: 1;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      padding: 10px;
+      box-sizing: border-box;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .message {
+      max-width: 75%;
+      padding: 8px 12px;
+      border-radius: 16px;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: #2563eb;
+      color: #ffffff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.assistant {
+      align-self: flex-start;
+      background: #ffffff;
+      color: #111827;
+      border: 1px solid #e5e7eb;
+      border-bottom-left-radius: 4px;
+    }
+
+    .message-meta {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-bottom: 2px;
+    }
+
+    .message.assistant .message-meta {
+      color: #6b7280;
+    }
+
+    .input-container {
+      margin-top: 10px;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-width: 140px;
+    }
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 2px;
+    }
+
+    input[type="number"],
+    textarea {
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      padding: 7px 9px;
+      font-size: 0.9rem;
+      outline: none;
+      resize: vertical;
+      box-sizing: border-box;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    input[type="number"]:focus,
+    textarea:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.18);
+    }
+
+    textarea {
+      min-height: 50px;
+      max-height: 120px;
+    }
+
+    .input-row-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    button {
+      border: none;
+      outline: none;
+      border-radius: 999px;
+      padding: 7px 16px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 7px 18px rgba(37, 99, 235, 0.35);
+      transition: transform 0.08s ease, box-shadow 0.08s ease, opacity 0.15s ease;
+      white-space: nowrap;
+    }
+
+    button:disabled {
+      opacity: 0.7;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    button:not(:disabled):hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(37, 99, 235, 0.45);
+    }
+
+    .status {
+      font-size: 0.8rem;
+      color: #6b7280;
+      min-height: 1em;
+    }
+
+    .status.error {
+      color: #b91c1c;
+    }
+
+    .status.success {
+      color: #166534;
+    }
+
+    .hint-text {
+      font-size: 0.8rem;
+      color: #9ca3af;
+    }
+
+    @media (max-width: 640px) {
+      .app-container {
+        height: 100vh;
+        max-height: none;
+        max-width: 100%;
+        border-radius: 0;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="app-container">
+  <header class="app-header">
+    <h1 class="app-title">MCP Recommendation Assistant</h1>
+    <p class="app-subtitle">
+      Chat with the assistant. For each message, provide a task ID and your requirements. The system will recommend two MCP tools from the precomputed top-10 list for that task.
+    </p>
+  </header>
+
+  <main class="chat-container" id="chatContainer">
+    <!-- Messages will be dynamically inserted here -->
+  </main>
+
+  <section class="input-container">
+    <div class="input-row">
+      <div class="input-group" style="max-width: 180px;">
+        <label for="taskId">Task ID</label>
+        <input type="number" id="taskId" placeholder="e.g. 1" min="1" />
+      </div>
+      <div class="input-group">
+        <label for="requirement">Your message / Requirement</label>
+        <textarea
+          id="requirement"
+          placeholder="Describe what you need for this task (e.g., easy to use, prefer official MCPs, JavaScript-focused, etc.)"
+        ></textarea>
+      </div>
+    </div>
+    <div class="input-row-bottom">
+      <div class="status" id="status"></div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span class="hint-text">You can keep chatting, change the task ID at any time, or ask about a new task.</span>
+        <button id="sendBtn">Send</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+  // Set this to your backend server address
+  // Example for server IP 192.168.1.50 with port 8001:
+  // const API_BASE_URL = "http://192.168.1.50:8001";
+  const API_BASE_URL = "http://10.102.65.40:8001"; // TODO: replace with your server IP and port
+
+  const chatContainer = document.getElementById("chatContainer");
+  const taskIdInput = document.getElementById("taskId");
+  const requirementInput = document.getElementById("requirement");
+  const sendBtn = document.getElementById("sendBtn");
+  const statusEl = document.getElementById("status");
+
+  // Conversation messages that will be sent to the backend (for this task)
+  let conversationMessages = [];
+  let currentTaskIdForConversation = null;
+
+  function appendMessage(role, text, metaText) {
+    const wrapper = document.createElement("div");
+    wrapper.className = `message ${role}`;
+
+    if (metaText) {
+      const meta = document.createElement("div");
+      meta.className = "message-meta";
+      meta.textContent = metaText;
+      wrapper.appendChild(meta);
+    }
+
+    const body = document.createElement("div");
+    body.textContent = text;
+    wrapper.appendChild(body);
+
+    chatContainer.appendChild(wrapper);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+
+  function startNewConversationIfTaskChanged(taskId) {
+    if (currentTaskIdForConversation === null) {
+      currentTaskIdForConversation = taskId;
+      return;
+    }
+
+    if (currentTaskIdForConversation !== taskId) {
+      // New task_id: we reset the conversation history sent to the backend,
+      // but we keep the on-screen chat log for the user to see.
+      conversationMessages = [];
+      currentTaskIdForConversation = taskId;
+      appendMessage(
+        "assistant",
+        `Context switched to task ${taskId}. A new conversation context is now active for this task.`,
+        "Assistant"
+      );
+    }
+  }
+
+  async function handleSend() {
+    const taskIdValue = taskIdInput.value.trim();
+    const requirementValue = requirementInput.value.trim();
+
+    if (!taskIdValue || isNaN(Number(taskIdValue))) {
+      statusEl.textContent = "Please enter a valid integer task_id.";
+      statusEl.className = "status error";
+      return;
+    }
+
+    if (!requirementValue) {
+      statusEl.textContent = "Please enter your message / requirement.";
+      statusEl.className = "status error";
+      return;
+    }
+
+    const taskId = Number(taskIdValue);
+    startNewConversationIfTaskChanged(taskId);
+
+    statusEl.textContent = "";
+    statusEl.className = "status";
+
+    // Add user message to chat display
+    const userDisplayText = `Task ${taskId} · ${requirementValue}`;
+    appendMessage("user", userDisplayText, "You");
+
+    // Add user message to conversation history (only content matters for the model)
+    conversationMessages.push({
+      role: "user",
+      content: requirementValue
+    });
+
+    // Clear input box
+    requirementInput.value = "";
+
+    const payload = {
+      task_id: taskId,
+      messages: conversationMessages
+    };
+
+    sendBtn.disabled = true;
+    sendBtn.textContent = "Sending...";
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const msg = errorData.detail || `Request failed with status ${response.status}.`;
+        throw new Error(msg);
+      }
+
+      const data = await response.json();
+      const reply = data.assistant_reply || "(No reply content returned.)";
+
+      statusEl.textContent = "Reply received.";
+      statusEl.className = "status success";
+
+      // Add assistant reply to conversation history
+      conversationMessages.push({
+        role: "assistant",
+        content: reply
+      });
+
+      // Display assistant reply
+      appendMessage("assistant", reply, "Assistant");
+    } catch (err) {
+      console.error(err);
+      statusEl.textContent = `Error: ${err.message}`;
+      statusEl.className = "status error";
+
+      const errorText = `I am sorry, there was an error processing your request:\n${err.message}`;
+      appendMessage("assistant", errorText, "Assistant");
+    } finally {
+      sendBtn.disabled = false;
+      sendBtn.textContent = "Send";
+    }
+  }
+
+  sendBtn.addEventListener("click", handleSend);
+
+  // Press Enter in requirement box to send (Shift+Enter for newline)
+  requirementInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  });
+</script>
+
+</body>
+</html>
