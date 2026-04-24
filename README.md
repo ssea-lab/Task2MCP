@@ -2,7 +2,7 @@
 
 This repository contains three closely connected parts for task-aware MCP server recommendation in LLM-based development workflows: **Task2MCP**, a task-oriented benchmark dataset; **T2MRec**, a task-to-MCP recommendation model; and **T2MAgent**, an interactive recommendation prototype. The overall goal is to support developers and LLM-based agents in selecting suitable MCP servers for concrete software development tasks.
 
-## 📁Project Structure
+## 📁 Project Structure
 
 ```text
 Task2MCP/
@@ -88,3 +88,18 @@ python api_server.py
 
 By default, the service runs on `0.0.0.0:8001`.  
 For the frontend, set `API_BASE_URL` in `index-chat.html` to the backend address, then open the page in a browser.
+
+## 📚 Citation
+
+If you use Task2MCP in your research, please cite it as:
+
+```bibtex
+@misc{he2026languageactionenhancingllm,
+      title={From Language to Action: Enhancing LLM Task Efficiency with Task-Aware MCP Server Recommendation}, 
+      author={Shiyu He and Zhiman Chen and Yuqi Zhao and Neng Zhang and Ran Mo and Yutao Ma},
+      year={2026},
+      eprint={2604.17234},
+      archivePrefix={arXiv},
+      primaryClass={cs.SE},
+      url={https://arxiv.org/abs/2604.17234}, 
+}
